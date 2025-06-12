@@ -25,19 +25,6 @@
 		8B6DF6AF2DF9ACC9003ED10A /* GPay-iOS-SDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GPay-iOS-SDKTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		8B6DF6A62DF9ACC9003ED10A /* GPay-iOS-SDK */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "GPay-iOS-SDK";
-			sourceTree = "<group>";
-		};
-		8B6DF6B32DF9ACC9003ED10A /* GPay-iOS-SDKTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "GPay-iOS-SDKTests";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		8B6DF6A12DF9ACC9003ED10A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -60,8 +47,6 @@
 		8B6DF69A2DF9ACC9003ED10A = {
 			isa = PBXGroup;
 			children = (
-				8B6DF6A62DF9ACC9003ED10A /* GPay-iOS-SDK */,
-				8B6DF6B32DF9ACC9003ED10A /* GPay-iOS-SDKTests */,
 				8B6DF6A52DF9ACC9003ED10A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,9 +86,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				8B6DF6A62DF9ACC9003ED10A /* GPay-iOS-SDK */,
-			);
 			name = "GPay-iOS-SDK";
 			packageProductDependencies = (
 			);
@@ -123,9 +105,6 @@
 			);
 			dependencies = (
 				8B6DF6B22DF9ACC9003ED10A /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				8B6DF6B32DF9ACC9003ED10A /* GPay-iOS-SDKTests */,
 			);
 			name = "GPay-iOS-SDKTests";
 			packageProductDependencies = (
@@ -356,6 +335,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -389,6 +369,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -1,0 +1,28 @@
+# Xcode
+.DS_Store
+*.xcuserstate
+*.xcuserdata
+*.xcuserdatad
+*.moved-aside
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# SwiftPM
+.build/
+
+# User data
+*.swp
+*.swo
+*.lock
+
+# Logs
+*.log
+
+# Derived data
+DerivedData/
+
+# Other
+*.orig
+*.rej
+
+# Ignore documentation build output
+*.docc-build
