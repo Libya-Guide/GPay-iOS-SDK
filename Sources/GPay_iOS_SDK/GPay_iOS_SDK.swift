@@ -89,6 +89,8 @@ public struct GPayPortal: View {
                     .progressViewStyle(CircularProgressViewStyle())
                     .scaleEffect(2)
             }
+        }
+        .overlay(
             HStack {
                 Button(action: {
                     dismissView()
@@ -102,8 +104,9 @@ public struct GPayPortal: View {
                         .padding([.top, .leading], 16)
                 }
                 Spacer()
-            }
-        }
+            },
+            alignment: .topLeading
+        )
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             onCheckPayment?(self)
         }
