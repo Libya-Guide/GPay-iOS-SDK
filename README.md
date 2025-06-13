@@ -4,7 +4,43 @@
 > - iOS 14.0 or higher is required to use the GPay iOS SDK.
 > 
 
-## Prerequisite: Define a URL Scheme for Your App
+----
+
+## Overview
+This is the official Libya Guide GPay SDK for iOS. It allows you to easily integrate the GPay payment portal into your iOS app.
+
+## Installation
+
+### Swift Package Manager (Recommended)
+You can add the GPay iOS SDK to your project using Swift Package Manager:
+
+1. In Xcode, go to **File > Add Packages...**
+2. Enter the repository URL:
+   ```
+   https://github.com/Libya-Guide/GPay-iOS-SDK.git
+   ```
+3. Choose the version or branch you want to use (e.g., `master` or a specific tag).
+4. Add the package to your app target.
+
+### CocoaPods
+You can also install the SDK using CocoaPods. Add the following to your `Podfile`:
+
+```ruby
+pod 'GPay_iOS_SDK', :git => 'https://github.com/Libya-Guide/GPay-iOS-SDK.git', :branch => 'master'
+```
+
+Then run:
+
+```sh
+pod install
+```
+
+----
+
+
+## Prerequisites
+
+### 1. Define a URL Scheme for Your App
 
 Before integrating the GPay iOS SDK, you must ensure your app has a custom URL scheme defined. This is required so the GPay app can return control to your application after a payment is made.
 
@@ -37,67 +73,80 @@ Your `Info.plist` will now include an entry like this:
 ```
 Replace `yourappscheme` with your chosen scheme. This value will be used by the GPay SDK to enable app-to-app communication.
 
----
+### 2. Create a Payment Request
 
-## Overview
-This is the official Libya Guide GPay SDK for iOS. It allows you to easily integrate the GPay payment portal into your iOS app.
+Before you present the GPay Payment Portal, you need to create a payment request using the the GPay API. NOTE: for security reasons, do NOT communicate with the GPay API
+directly from your app. Make the request to your system's back-end, and have the back-end send the request to GPay to create the payment request. The GPay API will return the information you need to present to the GPay Payment Portal.
 
-## Installation
+The information you need to aqcuire are:
+* The `amount` to be paid, in LYD. This should be the same amount with which you created the payment request.
+* The `requestId`. The `request_id` that was returned by the GPay API when you created the payment request.
+* The `requestTime`. The `request_time` that was returned by the GPay API when you created the payment request.
+* The `requesterUsername`. The username used to create the payment request. This is basically the username of the account that owns the API Key that was used to communicate with the GPay API.
 
-### 1. Add the SDK to Your Project
-- Add the `GPay-iOS-SDK` folder to your Xcode project.
-- Make sure to include all Swift files and resources.
-- Ensure your app's URL scheme is defined as described above.
-
-### 2. Import the SDK
-In any Swift file where you want to use the SDK:
-
-```swift
-import SwiftUI
-// import GPay_iOS_SDK if using as a module
-```
+----
 
 ## Usage Example
 
-### Presenting the GPay Portal
+### 1. Import the SDK
+In any Swift file where you want to use the SDK:
 
 ```swift
+import GPay_iOS_SDK
+```
+
+### 2. Presenting the GPay Portal
+
+```swift
+
 import SwiftUI
+import GPay_iOS_SDK
 
 struct ContentView: View {
-    @State private var showGPay = false
     var body: some View {
-        Button("Pay with GPay") {
-            showGPay = true
+        VStack {
+            Spacer()
+            Button(action: {
+                let gpayView = GPayPortal(
+                    sdkUrl: .staging, // For production, use .production
+                    amount: 85.4, // The amount in LYD
+                    requesterUsername: "<YOUR_ACCOUNT_USERNAME>",
+                    requestId: "<UUID>",
+                    requestTime: "<LONG_NUMBER>",
+                    onCheckPayment: { view in
+                        // Check if the payment request has been paid
+                        // by calling the GPay API from your system's backend
+                        // ....
+                        
+                        // To close the view. Execute this line.
+                        view.close()
+                    },
+                    onViewClosed: { view in
+                        // Use this callback to perform any action
+                        // you need after the view is closed.
+                        // ...
+                    }
+                )
+                gpayView.show()
+                
+                // If you want to close the view programmatically,
+                // gpayView.close()
+            }) {
+                Text("Tap Me")
+                    .font(.title)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            Spacer()
         }
-        .fullScreenCover(isPresented: $showGPay) {
-            GPayPortal(
-                sdkUrl: .production, // or .staging
-                amount: 100.0,
-                requesterUsername: "your_username",
-                requestId: UUID().uuidString,
-                requestTime: String(Int(Date().timeIntervalSince1970 * 1000)),
-                onCheckPayment: { portal in
-                    // Called when returning from GPay app or when payment confirmation is requested
-                    // You can check payment status here
-                },
-                onViewClosed: { portal in
-                    // Called when the user closes the portal
-                    showGPay = false
-                }
-            )
-        }
+        .padding()
     }
 }
 ```
 
 ### Callbacks
-- `onCheckPayment`: Called when the app returns from the GPay app or when the payment confirmation button is pressed in the web portal. Use this to check the payment status.
-- `onViewClosed`: Called when the user closes the GPay portal (taps the close button).
+- `onCheckPayment`: Called when the app returns from the GPay app or when the payment confirmation button is pressed in the GPay Payment Portal interface. Use this to check the payment status. NOTE: receiving the callback doesn't guaratee that the payment was made. You are expected to make a request using the GPay API to check the status of the payment request that you made. If the `is_paid` field in the response is set to `true`, then the payment was made successfully to your account and you can finalize the checkout process. Otherwise, either the payment has not yet been made or the payment has failed.
+- `onViewClosed`: Called when the user closes the GPay portal (taps the close button or by explicitly calling the close() function).
 
-## Notes
-- The SDK automatically retrieves your app's URL scheme from the `Info.plist` and passes it to the GPay system.
-- Make sure your app can handle the custom URL scheme if you want to support deep linking or callbacks from the GPay app.
-- The SDK requires network access to load the payment portal.
-
-For more advanced integration or troubleshooting, see the SDK source code and comments.
