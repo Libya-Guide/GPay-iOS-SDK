@@ -70,7 +70,7 @@ public struct GPayPortal: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack(alignment: .center) {
             if let url = urlWithQuery {
                 GPayWebViewWithPortal(
                     url: url,
