@@ -10,98 +10,19 @@ import SwiftUI
 import WebKit
 import UIKit
 
-enum GPaySdkUrl: String {
+public enum GPaySdkUrl: String {
     case staging = "http://192.168.0.111:8080/banking/gpay_payment_page.jsp"
     case production = "https://gpay.ly/banking/gpay_payment_page.jsp"
 }
 
-struct GPayWebView: UIViewRepresentable {
-    let url: URL
-    @Binding var isLoading: Bool
-    var onCheckPayment: ((GPayPortal) -> Void)?
-    var onOpenApp: ((_ url: URL, _ portal: GPayPortal) -> Void)?
-
-    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        var parent: GPayWebView
-        var portal: GPayPortal
-        init(parent: GPayWebView, portal: GPayPortal) {
-            self.parent = parent
-            self.portal = portal
-        }
-        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-            parent.isLoading = true
-        }
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            parent.isLoading = false
-        }
-        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            parent.isLoading = false
-        }
-        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            parent.isLoading = false
-        }
-        // Handle JS messages
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == "iosListener", let body = message.body as? [String: Any], let event = body["event"] as? String else { return }
-            if event == "confirmPayment" {
-                parent.onCheckPayment?(portal)
-            } else if event == "makePayment" {
-                // Build the lggpay://pay-request URL
-                guard let amount = body["amount"],
-                      let requestId = body["requestId"],
-                      let requestTime = body["requestTimestamp"],
-                      let requesterUsername = body["requesterUsername"],
-                      let appName = body["appName"] else { return }
-                var components = URLComponents()
-                components.scheme = "lggpay"
-                components.host = "pay-request"
-                components.queryItems = [
-                    URLQueryItem(name: "amount", value: String(describing: amount)),
-                    URLQueryItem(name: "request_id", value: String(describing: requestId)),
-                    URLQueryItem(name: "request_time", value: String(describing: requestTime)),
-                    URLQueryItem(name: "requester_username", value: String(describing: requesterUsername)),
-                    URLQueryItem(name: "app_name", value: String(describing: appName))
-                ]
-                if let url = components.url {
-                    parent.onOpenApp?(url, portal)
-                }
-            }
-        }
-    }
-
-    func makeCoordinator() -> Coordinator {
-        // GPayWebView does not have access to GPayPortal directly, so this will be set in the GPayPortal body
-        fatalError("Coordinator must be initialized with portal instance from GPayPortal")
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let contentController = WKUserContentController()
-        contentController.add(context.coordinator, name: "iosListener")
-        let config = WKWebViewConfiguration()
-        config.userContentController = contentController
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.navigationDelegate = context.coordinator
-        return webView
-    }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        if uiView.url != url {
-            let request = URLRequest(url: url)
-            uiView.load(request)
-        }
-    }
-}
-
-// Usage in your SwiftUI view:
-struct GPayPortal: View {
-    let sdkUrl: GPaySdkUrl
-    let amount: Double
-    let requesterUsername: String
-    let requestId: String
-    let requestTime: String
-    // Remove appName from the initializer
-    var onCheckPayment: ((GPayPortal) -> Void)?
-    var onViewClosed: ((GPayPortal) -> Void)?
+public struct GPayPortal: View {
+    public let sdkUrl: GPaySdkUrl
+    public let amount: Double
+    public let requesterUsername: String
+    public let requestId: String
+    public let requestTime: String
+    public var onCheckPayment: ((GPayPortal) -> Void)?
+    public var onViewClosed: ((GPayPortal) -> Void)?
 
     @State private var isLoading = true
     @Environment(\.openURL) private var openURL
@@ -128,6 +49,24 @@ struct GPayPortal: View {
             URLQueryItem(name: "platform", value: "ios")
         ]
         return components?.url
+    }
+
+    public init(
+        sdkUrl: GPaySdkUrl,
+        amount: Double,
+        requesterUsername: String,
+        requestId: String,
+        requestTime: String,
+        onCheckPayment: ((GPayPortal) -> Void)? = nil,
+        onViewClosed: ((GPayPortal) -> Void)? = nil
+    ) {
+        self.sdkUrl = sdkUrl
+        self.amount = amount
+        self.requesterUsername = requesterUsername
+        self.requestId = requestId
+        self.requestTime = requestTime
+        self.onCheckPayment = onCheckPayment
+        self.onViewClosed = onViewClosed
     }
 
     var body: some View {
@@ -200,6 +139,80 @@ extension GPayPortal {
     
     public func close() {
         dismissView()
+    }
+}
+
+struct GPayWebView: UIViewRepresentable {
+    let url: URL
+    @Binding var isLoading: Bool
+    var onCheckPayment: ((GPayPortal) -> Void)?
+    var onOpenApp: ((_ url: URL, _ portal: GPayPortal) -> Void)?
+
+    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+        var parent: GPayWebView
+        var portal: GPayPortal
+        init(parent: GPayWebView, portal: GPayPortal) {
+            self.parent = parent
+            self.portal = portal
+        }
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            parent.isLoading = true
+        }
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            parent.isLoading = false
+        }
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            parent.isLoading = false
+        }
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            parent.isLoading = false
+        }
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard message.name == "iosListener", let body = message.body as? [String: Any], let event = body["event"] as? String else { return }
+            if event == "confirmPayment" {
+                parent.onCheckPayment?(portal)
+            } else if event == "makePayment" {
+                // Build the lggpay://pay-request URL
+                guard let amount = body["amount"],
+                      let requestId = body["requestId"],
+                      let requestTime = body["requestTimestamp"],
+                      let requesterUsername = body["requesterUsername"],
+                      let appName = body["appName"] else { return }
+                var components = URLComponents()
+                components.scheme = "lggpay"
+                components.host = "pay-request"
+                components.queryItems = [
+                    URLQueryItem(name: "amount", value: String(describing: amount)),
+                    URLQueryItem(name: "request_id", value: String(describing: requestId)),
+                    URLQueryItem(name: "request_time", value: String(describing: requestTime)),
+                    URLQueryItem(name: "requester_username", value: String(describing: requesterUsername)),
+                    URLQueryItem(name: "app_name", value: String(describing: appName))
+                ]
+                if let url = components.url {
+                    parent.onOpenApp?(url, portal)
+                }
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        fatalError("Coordinator must be initialized with portal instance from GPayPortal")
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let contentController = WKUserContentController()
+        contentController.add(context.coordinator, name: "iosListener")
+        let config = WKWebViewConfiguration()
+        config.userContentController = contentController
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = context.coordinator
+        return webView
+    }
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        if uiView.url != url {
+            let request = URLRequest(url: url)
+            uiView.load(request)
+        }
     }
 }
 
