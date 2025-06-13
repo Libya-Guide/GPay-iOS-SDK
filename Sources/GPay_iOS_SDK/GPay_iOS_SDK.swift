@@ -11,7 +11,7 @@ import WebKit
 import UIKit
 
 public enum GPaySdkUrl: String {
-    case staging = "http://192.168.0.111:8080/banking/gpay_payment_page.jsp"
+    case staging = "https://gpay-staging.libyaguide.net/banking/gpay_payment_page.jsp"
     case production = "https://gpay.ly/banking/gpay_payment_page.jsp"
 }
 
