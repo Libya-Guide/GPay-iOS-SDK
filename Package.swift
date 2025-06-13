@@ -16,6 +16,7 @@ let package = Package(
     products: [
         .library(
             name: "GPay_iOS_SDK",
+            type: .dynamic, // Ensure dynamic framework for embedding
             targets: ["GPay_iOS_SDK"]),
     ],
     targets: [
